@@ -25,8 +25,8 @@ A powerful remote client for ComfyUI that allows you to connect to ComfyUI serve
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/ComfyUI-RemoteForge.git
-cd ComfyUI-RemoteForge
+git@github.com:summerKK/comfyUI-remoteForge.git
+cd comfyUI-remoteForge
 ```
 
 2. Create and activate a virtual environment:
@@ -145,4 +145,47 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Acknowledgments
 
 - ComfyUI project for the amazing stable diffusion interface
-- All contributors and testers 
+- All contributors and testers
+
+## Prompt Management
+
+The tool uses a `prompts.json` file to store and manage prompts. A sample template file `prompts.json.example` is provided.
+
+To get started:
+
+1. Copy the example file to create your own prompts file:
+   ```bash
+   cp prompts.json.example prompts.json
+   ```
+
+2. Edit the `prompts.json` file to add your own prompts.
+
+3. Use the prompt management tool to view, add, or delete prompts:
+   ```bash
+   # List all prompts
+   python prompts_tool.py list
+   
+   # View a specific prompt
+   python prompts_tool.py view default
+   
+   # Add a new prompt
+   python prompts_tool.py add my_prompt "positive prompt text" "negative prompt text"
+   
+   # Delete a prompt
+   python prompts_tool.py delete my_prompt
+   ```
+
+Note: The `prompts.json` file is excluded from version control to avoid sharing personal prompts.
+
+## Server Tools
+
+```bash
+# List available models on the server
+python server_tools.py --server http://your-server:8188 list-models
+
+# Get server information
+python server_tools.py --server http://your-server:8188 server-info
+
+# Create compatible workflow
+python server_tools.py --server http://your-server:8188 create-workflow --name my_workflow
+``` 

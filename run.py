@@ -6,58 +6,55 @@ import sys
 import argparse
 from pathlib import Path
 
-# 确保目录结构存在
+# Ensure directory structure exists
 os.makedirs("output", exist_ok=True)
 os.makedirs("templates", exist_ok=True)
 
 def main():
-    """主程序入口"""
-    parser = argparse.ArgumentParser(description="ComfyUI远程客户端 - 选择运行模式")
-    parser.add_argument("--gui", "-g", action="store_true", help="以图形界面模式运行")
-    parser.add_argument("--cli", "-c", action="store_true", help="以命令行模式运行")
-    parser.add_argument("command", nargs="?", help="命令行命令")
-    parser.add_argument("args", nargs="*", help="传递给命令行模式的参数")
+    """Main program entry"""
+    parser = argparse.ArgumentParser(description="ComfyUI Remote Client - Choose run mode")
+    parser.add_argument("--gui", "-g", action="store_true", help="Run in GUI mode")
+    parser.add_argument("--cli", "-c", action="store_true", help="Run in CLI mode")
+    parser.add_argument("command", nargs="?", help="CLI command")
+    parser.add_argument("args", nargs="*", help="Arguments passed to CLI mode")
     
     args, unknown = parser.parse_known_args()
     
-    # CLI命令列表
+    # CLI command list
     cli_commands = ["template", "generate", "save-template", "list-templates", "prompts"]
     
-    # 检查是否应该使用CLI模式
-    # 如果明确指定--cli或命令是CLI命令之一，则使用CLI模式
+    # Check if CLI mode should be used
+    # If --cli is explicitly specified or the command is a CLI command, use CLI mode
     should_use_cli = args.cli or (args.command in cli_commands)
     
-    # 如果没有指定模式，且没有检测到CLI命令，默认使用GUI模式
+    # If no mode is specified, and no CLI command detected, default to GUI mode
     if not args.gui and not should_use_cli:
         args.gui = True
     
-    if args.gui and not should_use_cli:
-        try:
-            # 导入并运行GUI
-            from gui import main as gui_main
-            gui_main()
-        except ImportError as e:
-            print(f"启动GUI失败: {str(e)}")
-            print("可能是缺少tkinter库。请安装tkinter或使用命令行模式。")
-            sys.exit(1)
+    # Run in selected mode
+    if args.gui:
+        print("Starting GUI mode...")
+        from gui import main as gui_main
+        gui_main()
     
-    else:  # CLI模式
-        # 处理提示词管理命令
-        if args.command == "prompts":
-            # 导入并运行提示词管理工具
-            try:
-                from prompts_tool import main as prompts_main
-                # 重构参数列表，移除"prompts"命令
-                sys.argv = [sys.argv[0]] + args.args + unknown
-                prompts_main()
-                return
-            except ImportError as e:
-                print(f"启动提示词管理工具失败: {str(e)}")
-                sys.exit(1)
-        
-        # 导入并运行命令行
+    elif should_use_cli:
+        print("Starting CLI mode...")
         from main import main as cli_main
+        
+        # If there's a command, add it back to sys.argv and run the CLI
+        if args.command:
+            # Create new argv starting with the script name, then the command and args
+            # Note: unknown args are passed through directly
+            new_argv = [sys.argv[0], args.command] + args.args + unknown
+            
+            # Replace sys.argv with our new list
+            sys.argv = new_argv
+        
+        # Run the CLI main function
         cli_main()
+    
+    else:
+        parser.print_help()
 
 
 if __name__ == "__main__":

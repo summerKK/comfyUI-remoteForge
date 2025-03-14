@@ -25,8 +25,8 @@ ComfyUI-RemoteForge是一个功能强大的ComfyUI远程客户端，允许您连
 1. 克隆仓库：
 
 ```bash
-git clone https://github.com/yourusername/ComfyUI-RemoteForge.git
-cd ComfyUI-RemoteForge
+git@github.com:summerKK/comfyUI-remoteForge.git
+cd comfyUI-remoteForge
 ```
 
 2. 创建并激活虚拟环境：

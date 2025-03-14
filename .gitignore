@@ -17,6 +17,8 @@ parts/
 sdist/
 var/
 *.egg-info/
+.installed.cfg
+*.egg
 
 # User-specific templates
 templates/
@@ -35,4 +37,8 @@ output/
 
 # OS specific files
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Project specific
+prompts.json
+server_info.json 

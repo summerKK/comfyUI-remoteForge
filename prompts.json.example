@@ -1,0 +1,18 @@
+{
+    "default": {
+        "positive": "high quality, fine details, realistic, high definition photography",
+        "negative": "low quality, blurry, distorted, error, noise"
+    },
+    "portrait": {
+        "positive": "a beautiful girl, smiling, high quality, fine details, realistic, high definition photography, sunny day, natural lighting",
+        "negative": "low quality, blurry, distorted, error, noise, deformed, extra limbs, missing limbs, overexposed, dark"
+    },
+    "animal": {
+        "positive": "a cute small animal, furry, close-up shot, clear details, sunlight, high quality, fine details, 8k",
+        "negative": "low quality, blurry, distorted, error, noise, deformed, oversaturated, low resolution"
+    },
+    "landscape": {
+        "positive": "spectacular natural landscape, mountains, rivers, blue sky, white clouds, sunny day, high quality, fine details, 8k, magnificent, panoramic view",
+        "negative": "low quality, blurry, distorted, error, noise, people, buildings, text, signs, overexposed, dark"
+    }
+} 

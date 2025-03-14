@@ -15,42 +15,42 @@ from image_downloader import ImageDownloader
 
 def load_prompts_file():
     """
-    从prompts.json文件加载提示词
+    Load prompts from prompts.json file
     
     Returns:
-        包含提示词的字典，如果文件不存在或无法解析则返回默认提示词
+        Dictionary containing prompts, or default prompts if file doesn't exist or can't be parsed
     """
     try:
-        # 尝试从项目根目录读取prompts.json文件
+        # Try to read prompts.json file from project root directory
         prompts_file = Path("prompts.json")
         if prompts_file.exists():
             with open(prompts_file, 'r', encoding='utf-8') as f:
                 return json.load(f)
     except Exception as e:
-        print(f"读取提示词文件失败: {str(e)}，将使用默认提示词")
+        print(f"Failed to read prompts file: {str(e)}, will use default prompts")
     
-    # 如果文件不存在或无法解析，返回默认提示词
+    # If file doesn't exist or can't be parsed, return default prompts
     return {
         "default": {
-            "positive": "高品质，精致细节，真实感，高清摄影",
-            "negative": "低品质，模糊，畸变，错误，噪点"
+            "positive": "high quality, fine details, realistic, high definition photography",
+            "negative": "low quality, blurry, distorted, error, noise"
         }
     }
 
 
 def get_prompt_from_file(prompt_key=None):
     """
-    从提示词文件中获取提示词
+    Get prompts from prompts file
     
     Args:
-        prompt_key: 提示词的键名，如果为None则使用'default'
+        prompt_key: Prompt key name, if None uses 'default'
         
     Returns:
-        包含正面提示词和负面提示词的元组(positive, negative)
+        Tuple containing (positive, negative) prompts
     """
     prompts = load_prompts_file()
     
-    # 如果未指定键名或键名不存在，则使用默认提示词
+    # If key not specified or doesn't exist, use default prompt
     if not prompt_key or prompt_key not in prompts:
         prompt_key = "default"
         
@@ -59,68 +59,68 @@ def get_prompt_from_file(prompt_key=None):
 
 
 def main():
-    """主程序入口"""
+    """Main program entry"""
     
-    # 加载环境变量
+    # Load environment variables
     load_dotenv()
     
-    # 创建解析器
-    parser = argparse.ArgumentParser(description="ComfyUI远程客户端 - 生成并下载图像")
+    # Create parser
+    parser = argparse.ArgumentParser(description="ComfyUI Remote Client - Generate and download images")
     
-    # 添加子命令
-    subparsers = parser.add_subparsers(dest="command", help="选择命令")
+    # Add subcommands
+    subparsers = parser.add_subparsers(dest="command", help="Select command")
     
-    # 生成图像命令
-    generate_parser = subparsers.add_parser("generate", help="生成图像")
+    # Generate image command
+    generate_parser = subparsers.add_parser("generate", help="Generate image")
     generate_parser.add_argument("--server", "-s", default=os.environ.get("COMFYUI_SERVER", "http://127.0.0.1:8188"),
-                                help="ComfyUI服务器URL")
+                                help="ComfyUI server URL")
     generate_parser.add_argument("--proxy", default=os.environ.get("HTTP_PROXY"), 
-                               help="代理服务器地址，例如 http://127.0.0.1:1080 或 socks5://127.0.0.1:1080")
-    generate_parser.add_argument("--prompt", "-p", help="提示词文本，如果不提供将从prompts.json读取")
-    generate_parser.add_argument("--prompt-key", "-pk", help="从prompts.json中读取的提示词键名，默认为'default'")
-    generate_parser.add_argument("--negative", "-n", help="负面提示词，如果不提供将从prompts.json读取")
-    generate_parser.add_argument("--width", "-W", type=int, default=512, help="图像宽度")
-    generate_parser.add_argument("--height", "-H", type=int, default=512, help="图像高度")
-    generate_parser.add_argument("--seed", type=int, default=-1, help="随机种子")
-    generate_parser.add_argument("--output", "-o", default="output", help="输出目录")
+                               help="Proxy server address, e.g. http://127.0.0.1:1080 or socks5://127.0.0.1:1080")
+    generate_parser.add_argument("--prompt", "-p", help="Prompt text, if not provided will read from prompts.json")
+    generate_parser.add_argument("--prompt-key", "-pk", help="Prompt key name to read from prompts.json, default is 'default'")
+    generate_parser.add_argument("--negative", "-n", help="Negative prompt, if not provided will read from prompts.json")
+    generate_parser.add_argument("--width", "-W", type=int, default=512, help="Image width")
+    generate_parser.add_argument("--height", "-H", type=int, default=512, help="Image height")
+    generate_parser.add_argument("--seed", type=int, default=-1, help="Random seed")
+    generate_parser.add_argument("--output", "-o", default="output", help="Output directory")
     
-    # 使用模板命令
-    template_parser = subparsers.add_parser("template", help="使用模板生成图像")
+    # Use template command
+    template_parser = subparsers.add_parser("template", help="Use template to generate image")
     template_parser.add_argument("--server", "-s", default=os.environ.get("COMFYUI_SERVER", "http://127.0.0.1:8188"),
-                                help="ComfyUI服务器URL")
+                                help="ComfyUI server URL")
     template_parser.add_argument("--proxy", default=os.environ.get("HTTP_PROXY"), 
-                               help="代理服务器地址，例如 http://127.0.0.1:1080 或 socks5://127.0.0.1:1080")
-    template_parser.add_argument("--name", "-n", required=True, help="模板名称")
-    template_parser.add_argument("--prompt", "-p", help="提示词文本（覆盖模板中的提示词），如果不提供将从prompts.json读取")
-    template_parser.add_argument("--prompt-key", "-pk", help="从prompts.json中读取的提示词键名，默认为'default'")
-    template_parser.add_argument("--negative", "-N", help="负面提示词（覆盖模板中的负面提示词），如果不提供将从prompts.json读取")
-    template_parser.add_argument("--prompt-node", default="6", help="提示词节点ID")
-    template_parser.add_argument("--negative-node", default="7", help="负面提示词节点ID")
-    template_parser.add_argument("--output", "-o", default="output", help="输出目录")
+                               help="Proxy server address, e.g. http://127.0.0.1:1080 or socks5://127.0.0.1:1080")
+    template_parser.add_argument("--name", "-n", required=True, help="Template name")
+    template_parser.add_argument("--prompt", "-p", help="Prompt text (overrides template prompt), if not provided will read from prompts.json")
+    template_parser.add_argument("--prompt-key", "-pk", help="Prompt key name to read from prompts.json, default is 'default'")
+    template_parser.add_argument("--negative", "-N", help="Negative prompt (overrides template negative prompt), if not provided will read from prompts.json")
+    template_parser.add_argument("--prompt-node", default="6", help="Prompt node ID")
+    template_parser.add_argument("--negative-node", default="7", help="Negative prompt node ID")
+    template_parser.add_argument("--output", "-o", default="output", help="Output directory")
     
-    # 保存模板命令
-    save_template_parser = subparsers.add_parser("save-template", help="保存模板")
-    save_template_parser.add_argument("--name", "-n", required=True, help="模板名称")
-    save_template_parser.add_argument("--workflow", "-w", required=True, help="工作流JSON文件路径")
+    # Save template command
+    save_template_parser = subparsers.add_parser("save-template", help="Save template")
+    save_template_parser.add_argument("--name", "-n", required=True, help="Template name")
+    save_template_parser.add_argument("--workflow", "-w", required=True, help="Workflow JSON file path")
     save_template_parser.add_argument("--server", "-s", default=os.environ.get("COMFYUI_SERVER", "http://127.0.0.1:8188"),
-                                help="服务器URL（用于创建服务器特定的模板目录）")
+                                help="Server URL (used to create server-specific template directory)")
     
-    # 列出模板命令
-    list_templates_parser = subparsers.add_parser("list-templates", help="列出所有模板")
+    # List templates command
+    list_templates_parser = subparsers.add_parser("list-templates", help="List all templates")
     list_templates_parser.add_argument("--server", "-s", default=os.environ.get("COMFYUI_SERVER", "http://127.0.0.1:8188"),
-                                help="服务器URL（用于列出服务器特定的模板）")
+                                help="Server URL (used to list server-specific templates)")
     list_templates_parser.add_argument("--proxy", default=os.environ.get("HTTP_PROXY"), 
-                                     help="代理服务器地址，例如 http://127.0.0.1:1080 或 socks5://127.0.0.1:1080")
+                                     help="Proxy server address, e.g. http://127.0.0.1:1080 or socks5://127.0.0.1:1080")
     
-    # 解析命令行参数
+    # Parse command line arguments
     args = parser.parse_args()
     
-    # 如果没有提供命令，显示帮助信息
+    # If no command provided, show help
     if not args.command:
         parser.print_help()
         return
     
-    # 处理不同的命令
+    # Handle different commands
     if args.command == "generate":
         generate_image(args)
     
@@ -135,16 +135,16 @@ def main():
 
 
 def generate_image(args):
-    """使用基本工作流生成图像"""
+    """Generate image using basic workflow"""
     
     try:
-        # 初始化客户端
+        # Initialize client
         client = ComfyUIClient(args.server, proxy=args.proxy)
         
-        # 初始化提示词管理器，传递服务器URL
+        # Initialize prompt manager, pass server URL
         prompt_manager = PromptManager(server_url=args.server)
         
-        # 如果未提供提示词，则从文件读取
+        # If prompt not provided, read from file
         positive_prompt = args.prompt
         negative_prompt = args.negative
         
@@ -153,13 +153,13 @@ def generate_image(args):
             
             if not positive_prompt:
                 positive_prompt = file_positive
-                print(f"使用文件中的正面提示词: {positive_prompt}")
+                print(f"Using positive prompt from file: {positive_prompt}")
                 
             if not negative_prompt:
                 negative_prompt = file_negative
-                print(f"使用文件中的负面提示词: {negative_prompt}")
+                print(f"Using negative prompt from file: {negative_prompt}")
         
-        # 创建基本工作流
+        # Create basic workflow
         workflow = prompt_manager.create_basic_text2img_workflow(
             positive_prompt=positive_prompt,
             negative_prompt=negative_prompt,
@@ -168,67 +168,67 @@ def generate_image(args):
             height=args.height
         )
         
-        # 生成图像
-        print(f"使用提示词生成图像: {positive_prompt}")
+        # Generate image
+        print(f"Generating image with prompt: {positive_prompt}")
         if negative_prompt:
-            print(f"负面提示词: {negative_prompt}")
+            print(f"Negative prompt: {negative_prompt}")
         
         images_info, prompt_id = client.generate_image(workflow)
         
-        # 下载图像
+        # Download images
         if images_info:
             downloader = ImageDownloader(args.output)
             saved_paths = downloader.download_images(args.server, images_info, proxy=args.proxy)
-            print(f"已下载 {len(saved_paths)} 张图像")
+            print(f"Downloaded {len(saved_paths)} images")
         else:
-            print("未生成任何图像")
+            print("No images were generated")
     
     except Exception as e:
-        print(f"生成图像失败: {str(e)}")
+        print(f"Failed to generate image: {str(e)}")
         sys.exit(1)
 
 
 def use_template(args):
-    """使用模板生成图像"""
+    """Use template to generate image"""
     
     try:
-        # 初始化客户端
+        # Initialize client
         client = ComfyUIClient(args.server, proxy=args.proxy)
         
-        # 初始化提示词管理器，传递服务器URL
+        # Initialize prompt manager, pass server URL
         prompt_manager = PromptManager(server_url=args.server)
         
-        # 确保存在带有SaveImage节点的默认模板
+        # Ensure default template with SaveImage node exists
         if args.name == "default" or args.name == "default_save":
             template_name = prompt_manager.ensure_save_image_template(args.name)
             args.name = template_name
-            print(f"使用默认SaveImage模板: {template_name}")
+            print(f"Using default SaveImage template: {template_name}")
         
-        # 加载模板
+        # Load template
         try:
             workflow = prompt_manager.load_template(args.name)
         except FileNotFoundError:
-            print(f"模板 '{args.name}' 不存在，尝试创建默认模板...")
+            print(f"Template '{args.name}' does not exist, trying to create default template...")
             template_name = prompt_manager.ensure_save_image_template("default_save")
             args.name = template_name
             workflow = prompt_manager.load_template(template_name)
-            print(f"已创建并使用默认模板: {template_name}")
+            print(f"Created and using default template: {template_name}")
         
-        # 自动检测提示词节点ID
+        # Auto-detect prompt node IDs
         prompt_nodes = prompt_manager.detect_prompt_nodes(workflow)
         positive_node_id = prompt_nodes.get("positive")
         negative_node_id = prompt_nodes.get("negative")
         
-        # 如果找不到相应的节点ID，则使用命令行参数中指定的ID
+        # If node IDs not found, use command line parameters
         if not positive_node_id and args.prompt_node:
             positive_node_id = args.prompt_node
-            print(f"未能自动检测正面提示词节点，使用命令行参数指定的ID: {positive_node_id}")
+            print(f"Could not auto-detect positive prompt node, using command line parameter ID: {positive_node_id}")
         
         if not negative_node_id and args.negative_node:
             negative_node_id = args.negative_node
-            print(f"未能自动检测负面提示词节点，使用命令行参数指定的ID: {negative_node_id}")
+            print(f"Could not auto-detect negative prompt node, using command line parameter ID: {negative_node_id}")
         
-        # 如果未提供提示词，则从文件读取
+        # If prompt not provided, read from file
         prompt_text = args.prompt
         negative_text = args.negative
         
@@ -237,89 +237,89 @@ def use_template(args):
             
             if not prompt_text:
                 prompt_text = file_positive
-                print(f"使用文件中的正面提示词: {prompt_text}")
+                print(f"Using positive prompt from file: {prompt_text}")
                 
             if not negative_text:
                 negative_text = file_negative
-                print(f"使用文件中的负面提示词: {negative_text}")
+                print(f"Using negative prompt from file: {negative_text}")
         
-        # 更新提示词（如果提供）
+        # Update prompt (if provided)
         if prompt_text and positive_node_id:
             workflow = prompt_manager.update_prompt(workflow, positive_node_id, prompt_text)
-            print(f"已更新正面提示词 (节点ID: {positive_node_id}): {prompt_text}")
+            print(f"Updated positive prompt (Node ID: {positive_node_id}): {prompt_text}")
         elif prompt_text:
-            print(f"警告: 无法更新正面提示词，因为未找到有效的提示词节点ID")
+            print(f"Warning: Cannot update positive prompt because no valid prompt node ID was found")
         
-        # 更新负面提示词（如果提供）
+        # Update negative prompt (if provided)
         if negative_text and negative_node_id:
             workflow = prompt_manager.update_negative_prompt(workflow, negative_node_id, negative_text)
-            print(f"已更新负面提示词 (节点ID: {negative_node_id}): {negative_text}")
+            print(f"Updated negative prompt (Node ID: {negative_node_id}): {negative_text}")
         elif negative_text:
-            print(f"警告: 无法更新负面提示词，因为未找到有效的负面提示词节点ID")
+            print(f"Warning: Cannot update negative prompt because no valid negative prompt node ID was found")
         
-        # 生成图像
-        print(f"使用模板 '{args.name}' 生成图像")
+        # Generate image
+        print(f"Using template '{args.name}' to generate image")
         images_info, prompt_id = client.generate_image(workflow)
         
-        # 下载图像
+        # Download images
         if images_info:
             downloader = ImageDownloader(args.output)
             saved_paths = downloader.download_images(args.server, images_info, proxy=args.proxy)
-            print(f"已下载 {len(saved_paths)} 张图像")
+            print(f"Downloaded {len(saved_paths)} images")
         else:
-            print("未生成任何图像")
+            print("No images were generated")
     
     except Exception as e:
-        print(f"使用模板生成图像失败: {str(e)}")
+        print(f"Failed to generate image with template: {str(e)}")
         sys.exit(1)
 
 
 def save_template(args):
-    """保存工作流作为模板"""
+    """Save workflow as template"""
     
     try:
-        # 初始化提示词管理器，传递服务器URL
+        # Initialize prompt manager, pass server URL
         prompt_manager = PromptManager(server_url=args.server)
         
-        # 读取工作流文件
+        # Read workflow file
         try:
             with open(args.workflow, 'r', encoding='utf-8') as f:
                 workflow = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError) as e:
-            print(f"读取工作流文件失败: {str(e)}")
+            print(f"Failed to read workflow file: {str(e)}")
             sys.exit(1)
         
-        # 保存模板
+        # Save template
         prompt_manager.save_template(args.name, workflow)
-        print(f"模板 '{args.name}' 已保存")
+        print(f"Template '{args.name}' saved")
     
     except Exception as e:
-        print(f"保存模板失败: {str(e)}")
+        print(f"Failed to save template: {str(e)}")
         sys.exit(1)
 
 
 def list_templates(args):
-    """列出所有可用的模板"""
+    """List all available templates"""
     
     try:
-        # 初始化提示词管理器，传递服务器URL
+        # Initialize prompt manager, pass server URL
         prompt_manager = PromptManager(server_url=args.server)
         
-        # 初始化客户端（如果需要检查服务器特定模板）
+        # Initialize client (if needed to check server-specific templates)
         client = ComfyUIClient(args.server, proxy=args.proxy)
         
-        # 获取模板列表
+        # Get template list
         templates = prompt_manager.list_templates()
         
         if templates:
-            print("可用的模板:")
+            print("Available templates:")
             for i, template in enumerate(templates, 1):
                 print(f"{i}. {template}")
         else:
-            print("没有可用的模板")
+            print("No templates available")
     
     except Exception as e:
-        print(f"列出模板失败: {str(e)}")
+        print(f"Failed to list templates: {str(e)}")
         sys.exit(1)
 
 
