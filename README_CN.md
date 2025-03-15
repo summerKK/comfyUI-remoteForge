@@ -10,6 +10,7 @@
 - 支持代理连接
 - 保存和管理工作流模板
 - 自动下载生成的图像
+- 下载后清理服务器上的图像
 - 用户友好的图形界面
 - 用于自动化的命令行界面
 
@@ -25,7 +26,7 @@
 1. 克隆仓库：
 
 ```bash
-git@github.com:summerKK/comfyUI-remoteForge.git
+git clone git@github.com:summerKK/comfyUI-remoteForge.git
 cd comfyUI-remoteForge
 ```
 
@@ -59,6 +60,26 @@ cp .env.example .env
 COMFYUI_SERVER=http://127.0.0.1:8188
 HTTP_PROXY=
 ```
+
+### 服务器端设置（用于图像删除功能）
+
+要启用"下载后删除服务器上的图像"功能，您需要在ComfyUI服务器上安装`comfyui_extra_api`插件：
+
+1. 导航到您的ComfyUI自定义节点目录：
+
+```bash
+cd ComfyUI/custom_nodes/
+```
+
+2. 克隆comfyui_extra_api仓库：
+
+```bash
+git clone https://github.com/injet-zhou/comfyui_extra_api.git
+```
+
+3. 重启您的ComfyUI服务器
+
+安装完成后，客户端将能够在下载图像后从服务器删除它们。
 
 ## 使用方法
 
@@ -103,6 +124,13 @@ python run.py list-templates
 
 ```bash
 python run.py save-template --name=模板名称 --workflow=工作流文件路径.json
+```
+
+5. 下载后删除服务器上的图像：
+
+```bash
+python run.py generate --prompt="您的提示词" --delete-after-download
+python run.py template --name=模板名称 --delete-after-download
 ```
 
 ## 配置

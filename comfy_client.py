@@ -283,6 +283,61 @@ class ComfyUIClient:
             return f"{base_url}/view?filename={filename}&subfolder={subfolder}"
         return f"{base_url}/view?filename={filename}"
     
+    def delete_server_image(self, filename, subfolder=""):
+        """
+        Delete image from server
+        
+        Args:
+            filename: Image filename
+            subfolder: Subfolder name
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            # Ensure server URL is correct (remove /api if present)
+            base_url = self.server_url
+            if base_url.endswith('/api'):
+                base_url = base_url[:-4]
+            
+            # Try different API endpoints for deleting images
+            
+            # 1. First try comfyui_extra_api endpoint (DELETE method)
+            extra_api_url = f"{base_url}/comfyapi/v1/output-images/{filename}"
+            params = {}
+            if subfolder:
+                params["subfolder"] = subfolder
+            
+            try:
+                response = requests.delete(extra_api_url, params=params, proxies=self.proxies)
+                if response.status_code == 200:
+                    print(f"Successfully deleted image {filename} from server using comfyui_extra_api")
+                    return True
+            except Exception as e:
+                print(f"Failed to delete using comfyui_extra_api: {str(e)}")
+            
+            # 2. Try standard delete_image endpoint (POST method)
+            delete_url = f"{base_url}/delete_image"
+            data = {"filename": filename}
+            if subfolder:
+                data["subfolder"] = subfolder
+                
+            response = requests.post(delete_url, json=data, proxies=self.proxies)
+            
+            # Check if successful
+            if response.status_code == 200:
+                print(f"Successfully deleted image {filename} from server")
+                return True
+            else:
+                print(f"Failed to delete image {filename} from server: {response.status_code}: {response.reason}")
+                print("Note: Image deletion requires ComfyUI with delete_image endpoint or comfyui_extra_api plugin")
+                print("Install comfyui_extra_api: git clone https://github.com/injet-zhou/comfyui_extra_api.git")
+                return False
+                
+        except Exception as e:
+            print(f"Error deleting image from server: {str(e)}")
+            return False
+    
     def get_history(self, prompt_id):
         """
         Get history record

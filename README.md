@@ -10,6 +10,7 @@ A powerful remote client for ComfyUI that allows you to connect to ComfyUI serve
 - Support for proxy connections
 - Save and manage workflow templates
 - Download generated images automatically
+- Clean up server images after download
 - User-friendly graphical interface
 - Command-line interface for automation
 
@@ -25,7 +26,7 @@ A powerful remote client for ComfyUI that allows you to connect to ComfyUI serve
 1. Clone the repository:
 
 ```bash
-git@github.com:summerKK/comfyUI-remoteForge.git
+git clone git@github.com:summerKK/comfyUI-remoteForge.git
 cd comfyUI-remoteForge
 ```
 
@@ -59,6 +60,26 @@ cp .env.example .env
 COMFYUI_SERVER=http://127.0.0.1:8188
 HTTP_PROXY=
 ```
+
+### Server-side Setup for Image Deletion
+
+To enable the "Delete from server after download" feature, you need to install the `comfyui_extra_api` plugin on your ComfyUI server:
+
+1. Navigate to your ComfyUI custom_nodes directory:
+
+```bash
+cd ComfyUI/custom_nodes/
+```
+
+2. Clone the comfyui_extra_api repository:
+
+```bash
+git clone https://github.com/injet-zhou/comfyui_extra_api.git
+```
+
+3. Restart your ComfyUI server
+
+After installation, the client will be able to delete images from the server after downloading them.
 
 ## Usage
 
@@ -103,6 +124,13 @@ python run.py list-templates
 
 ```bash
 python run.py save-template --name=template_name --workflow=path/to/workflow.json
+```
+
+5. Delete images from server after download:
+
+```bash
+python run.py generate --prompt="your prompt here" --delete-after-download
+python run.py template --name=template_name --delete-after-download
 ```
 
 ## Configuration

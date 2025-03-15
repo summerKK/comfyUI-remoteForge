@@ -100,7 +100,7 @@ class ImageDownloader:
             print(f"Failed to download image: {str(e)}")
             return None
     
-    def download_images(self, server_url, images_info, proxy=None):
+    def download_images(self, server_url, images_info, proxy=None, delete_after_download=False):
         """
         Download multiple images
         
@@ -108,6 +108,7 @@ class ImageDownloader:
             server_url: ComfyUI server URL
             images_info: Image information list
             proxy: Proxy server address, e.g. "http://127.0.0.1:1080" or "socks5://127.0.0.1:1080"
+            delete_after_download: Whether to delete images from server after download
             
         Returns:
             List of paths to saved images
@@ -145,6 +146,11 @@ class ImageDownloader:
                     
                     print(f"Image saved to: {save_path}")
                     saved_paths.append(save_path)
+                    
+                    # Delete from server if requested
+                    if delete_after_download:
+                        self._delete_server_image(base_url, filename, subfolder, proxy)
+                    
                     continue
                 except Exception as e:
                     print(f"Failed to process image data, will try URL download: {str(e)}")
@@ -159,8 +165,72 @@ class ImageDownloader:
             saved_path = self.download_image(image_url, filename, proxy=proxy)
             if saved_path:
                 saved_paths.append(saved_path)
+                
+                # Delete from server if requested
+                if delete_after_download:
+                    self._delete_server_image(base_url, filename, subfolder, proxy)
         
         return saved_paths
+    
+    def _delete_server_image(self, base_url, filename, subfolder="", proxy=None):
+        """
+        Delete image from server
+        
+        Args:
+            base_url: ComfyUI server base URL
+            filename: Image filename
+            subfolder: Subfolder name
+            proxy: Proxy server address
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            # Set up proxy
+            proxies = None
+            if proxy:
+                proxies = {
+                    "http": proxy,
+                    "https": proxy
+                }
+            
+            # Try different API endpoints for deleting images
+            
+            # 1. First try comfyui_extra_api endpoint (DELETE method)
+            extra_api_url = f"{base_url}/comfyapi/v1/output-images/{filename}"
+            params = {}
+            if subfolder:
+                params["subfolder"] = subfolder
+            
+            try:
+                response = requests.delete(extra_api_url, params=params, proxies=proxies)
+                if response.status_code == 200:
+                    print(f"Successfully deleted image {filename} from server using comfyui_extra_api")
+                    return True
+            except Exception as e:
+                print(f"Failed to delete using comfyui_extra_api: {str(e)}")
+            
+            # 2. Try standard delete_image endpoint (POST method)
+            delete_url = f"{base_url}/delete_image"
+            data = {"filename": filename}
+            if subfolder:
+                data["subfolder"] = subfolder
+                
+            response = requests.post(delete_url, json=data, proxies=proxies)
+            
+            # Check if successful
+            if response.status_code == 200:
+                print(f"Successfully deleted image {filename} from server")
+                return True
+            else:
+                print(f"Failed to delete image {filename} from server: {response.status_code}: {response.reason}")
+                print("Note: Image deletion requires ComfyUI with delete_image endpoint or comfyui_extra_api plugin")
+                print("Install comfyui_extra_api: git clone https://github.com/injet-zhou/comfyui_extra_api.git")
+                return False
+                
+        except Exception as e:
+            print(f"Error deleting image from server: {str(e)}")
+            return False
     
     def save_image_from_bytes(self, image_bytes, filename=None, prefix=None):
         """

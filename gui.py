@@ -128,6 +128,12 @@ class ComfyUIRemoteGUI:
         seed_entry = ttk.Entry(image_frame, textvariable=self.seed_var, width=8)
         seed_entry.grid(row=0, column=5, padx=5, pady=5, sticky=tk.W)
         
+        # Add option to delete images from server after download
+        self.delete_after_download_var = tk.BooleanVar(value=False)
+        delete_checkbox = ttk.Checkbutton(image_frame, text="Delete from server after download", 
+                                         variable=self.delete_after_download_var)
+        delete_checkbox.grid(row=1, column=0, columnspan=6, padx=5, pady=5, sticky=tk.W)
+        
         # Generate button
         generate_btn = ttk.Button(generate_frame, text="Generate Image", command=self.generate_image)
         generate_btn.pack(padx=10, pady=10)
@@ -364,7 +370,18 @@ Project: https://github.com/summerKK/comfyUI-remoteForge
                 proxy = self.proxy_var.get()
                 if proxy:
                     self.log(f"Using proxy to download image: {proxy}")
-                saved_paths = self.downloader.download_images(self.client.server_url, images_info, proxy=proxy)
+                
+                # Get delete_after_download option
+                delete_after_download = self.delete_after_download_var.get()
+                if delete_after_download:
+                    self.log("Will delete images from server after download")
+                
+                saved_paths = self.downloader.download_images(
+                    self.client.server_url, 
+                    images_info, 
+                    proxy=proxy,
+                    delete_after_download=delete_after_download
+                )
                 
                 if saved_paths:
                     self.log(f"Downloaded {len(saved_paths)} images")

@@ -83,6 +83,8 @@ def main():
     generate_parser.add_argument("--height", "-H", type=int, default=512, help="Image height")
     generate_parser.add_argument("--seed", type=int, default=-1, help="Random seed")
     generate_parser.add_argument("--output", "-o", default="output", help="Output directory")
+    generate_parser.add_argument("--delete-after-download", "-d", action="store_true", 
+                               help="Delete images from server after download")
     
     # Use template command
     template_parser = subparsers.add_parser("template", help="Use template to generate image")
@@ -91,12 +93,14 @@ def main():
     template_parser.add_argument("--proxy", default=os.environ.get("HTTP_PROXY"), 
                                help="Proxy server address, e.g. http://127.0.0.1:1080 or socks5://127.0.0.1:1080")
     template_parser.add_argument("--name", "-n", required=True, help="Template name")
-    template_parser.add_argument("--prompt", "-p", help="Prompt text (overrides template prompt), if not provided will read from prompts.json")
+    template_parser.add_argument("--prompt", "-p", help="Override positive prompt")
+    template_parser.add_argument("--negative", "-neg", help="Override negative prompt")
     template_parser.add_argument("--prompt-key", "-pk", help="Prompt key name to read from prompts.json, default is 'default'")
-    template_parser.add_argument("--negative", "-N", help="Negative prompt (overrides template negative prompt), if not provided will read from prompts.json")
     template_parser.add_argument("--prompt-node", default="6", help="Prompt node ID")
     template_parser.add_argument("--negative-node", default="7", help="Negative prompt node ID")
     template_parser.add_argument("--output", "-o", default="output", help="Output directory")
+    template_parser.add_argument("--delete-after-download", "-d", action="store_true", 
+                               help="Delete images from server after download")
     
     # Save template command
     save_template_parser = subparsers.add_parser("save-template", help="Save template")
@@ -178,7 +182,7 @@ def generate_image(args):
         # Download images
         if images_info:
             downloader = ImageDownloader(args.output)
-            saved_paths = downloader.download_images(args.server, images_info, proxy=args.proxy)
+            saved_paths = downloader.download_images(args.server, images_info, proxy=args.proxy, delete_after_download=args.delete_after_download)
             print(f"Downloaded {len(saved_paths)} images")
         else:
             print("No images were generated")
@@ -264,7 +268,7 @@ def use_template(args):
         # Download images
         if images_info:
             downloader = ImageDownloader(args.output)
-            saved_paths = downloader.download_images(args.server, images_info, proxy=args.proxy)
+            saved_paths = downloader.download_images(args.server, images_info, proxy=args.proxy, delete_after_download=args.delete_after_download)
             print(f"Downloaded {len(saved_paths)} images")
         else:
             print("No images were generated")
