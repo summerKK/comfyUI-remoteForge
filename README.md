@@ -67,7 +67,7 @@ HTTP_PROXY=
 1. Run the GUI application:
 
 ```bash
-python gui.py
+python run.py --gui
 ```
 
 2. Enter your ComfyUI server URL (default: http://127.0.0.1:8188)
@@ -84,25 +84,25 @@ The application provides several commands for command-line usage:
 1. Generate an image with basic settings:
 
 ```bash
-python main.py generate --prompt "your prompt here" --negative "negative prompt here"
+python run.py generate --prompt="your prompt here" --negative="negative prompt here"
 ```
 
 2. Use a template to generate an image:
 
 ```bash
-python main.py template --name "template_name" --prompt "optional new prompt"
+python run.py template --name=template_name --prompt="optional new prompt"
 ```
 
 3. List available templates:
 
 ```bash
-python main.py list-templates
+python run.py list-templates
 ```
 
 4. Save a workflow as a template:
 
 ```bash
-python main.py save-template --name "template_name" --workflow "path/to/workflow.json"
+python run.py save-template --name=template_name --workflow=path/to/workflow.json
 ```
 
 ## Configuration
@@ -128,6 +128,15 @@ Key configuration options:
   - Example: `templates/my-remote-server.com_8188/` for a remote server
   - This organization allows you to maintain different templates for different ComfyUI servers
 - `prompts.json`: Default prompt templates
+
+## Templates and Random Seeds
+
+When using templates, you can control the seed behavior:
+
+- Setting `seed=-1` in a template will generate a random seed each time the template is loaded
+- Setting a specific seed value (e.g., `seed=123456789`) will always use that exact seed
+- The random seed generation happens automatically when loading templates with `seed=-1`
+- This allows you to create templates that produce different results each time (with random seeds) or consistent results (with fixed seeds)
 
 ## Development
 
@@ -163,16 +172,16 @@ To get started:
 3. Use the prompt management tool to view, add, or delete prompts:
    ```bash
    # List all prompts
-   python prompts_tool.py list
+   python run.py prompts list
    
    # View a specific prompt
-   python prompts_tool.py view default
+   python run.py prompts view default
    
    # Add a new prompt
-   python prompts_tool.py add my_prompt "positive prompt text" "negative prompt text"
+   python run.py prompts add --key=my_prompt --positive="positive prompt text" --negative="negative prompt text"
    
    # Delete a prompt
-   python prompts_tool.py delete my_prompt
+   python run.py prompts delete --key=my_prompt
    ```
 
 Note: The `prompts.json` file is excluded from version control to avoid sharing personal prompts.
@@ -181,11 +190,11 @@ Note: The `prompts.json` file is excluded from version control to avoid sharing 
 
 ```bash
 # List available models on the server
-python server_tools.py --server http://your-server:8188 list-models
+python run.py server-tools list-models --server=http://your-server:8188
 
 # Get server information
-python server_tools.py --server http://your-server:8188 server-info
+python run.py server-tools server-info --server=http://your-server:8188
 
 # Create compatible workflow
-python server_tools.py --server http://your-server:8188 create-workflow --name my_workflow
+python run.py server-tools create-workflow --name=my_workflow --server=http://your-server:8188
 ``` 

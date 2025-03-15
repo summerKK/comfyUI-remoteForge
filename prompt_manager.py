@@ -6,6 +6,7 @@ import json
 import re
 from pathlib import Path
 from urllib.parse import urlparse
+import random
 
 
 class PromptManager:
@@ -64,6 +65,7 @@ class PromptManager:
     def load_template(self, name):
         """
         Load workflow template. First try to load from server-specific directory, if not exists, then load from base directory.
+        If the template contains a KSampler node with seed=-1, a random seed will be generated.
         
         Args:
             name: Template name
@@ -92,7 +94,15 @@ class PromptManager:
         # Some servers expect a direct object with node IDs as keys, not nested in "nodes"
         if "nodes" in workflow:
             print(f"Converting template format: from nested nodes format to flat format")
-            return workflow["nodes"]
+            workflow = workflow["nodes"]
+        
+        # Check for KSampler nodes with seed=-1 and generate random seeds
+        for node_id, node in workflow.items():
+            if node.get("class_type") == "KSampler" and "inputs" in node:
+                if node["inputs"].get("seed", 0) == -1:
+                    # Generate random seed
+                    node["inputs"]["seed"] = random.randint(0, 0x7fffffff)
+                    print(f"Generated random seed {node['inputs']['seed']} for KSampler node {node_id}")
         
         return workflow
     
@@ -210,18 +220,21 @@ class PromptManager:
         Args:
             positive_prompt: Positive prompt
             negative_prompt: Negative prompt
-            seed: Random seed
+            seed: Random seed, use -1 for random seed
             width: Image width
             height: Image height
             
         Returns:
             Workflow JSON object
         """
+        # Generate random seed if seed is -1
+        actual_seed = random.randint(0, 0x7fffffff) if seed == -1 else seed
+        
         # For compatibility with most ComfyUI servers, use a simplified workflow
         workflow = {
             "3": {
                 "inputs": {
-                    "seed": seed if seed >= 0 else 0,
+                    "seed": actual_seed,
                     "steps": 20,
                     "cfg": 7.5,
                     "sampler_name": "euler_a",
